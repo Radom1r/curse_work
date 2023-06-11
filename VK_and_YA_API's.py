@@ -112,4 +112,4 @@ def course_work(vk_key, ya_token, vk_id=1, vk_version='5.131'):
     print('Uploading has been finished')
     print('Compliting the task has been finished')
 
-course_work('Введите токен VK:', "Введите токен Yandex:", 1, '5.131')
+course_work('Введите токен VK вместо этой строки', "Введите токен Yandex вместо этой строки", 1, '5.131')
