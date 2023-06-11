@@ -2,7 +2,9 @@ import requests
 from pprint import *
 import json
 import os
-def course_work(vk_key, ya_token, vk_version='5.131', vk_id=1):
+import shutil
+
+def course_work(vk_key, ya_token, vk_id=1, vk_version='5.131'):
     '''Скачивает фотографии и информацию о них из VK; загружает на Yandex.disk'''
     class YaUploader:
         def __init__(self, token: str):
@@ -55,8 +57,6 @@ def course_work(vk_key, ya_token, vk_version='5.131', vk_id=1):
                         current_photo = value
                         download_url = current_photo['url']
                 link_list.append(download_url)
-            if not os.path.isdir('photos'):
-                os.mkdir('photos')
             doubles_check = []
             for value in range(len(link_list)):
                 doubles_check.append(response[value]["likes"]["count"])
@@ -67,7 +67,7 @@ def course_work(vk_key, ya_token, vk_version='5.131', vk_id=1):
                 print('Getting photos has been complited')
             else:
                 for value in range(len(link_list)):
-                    with open(f'photos/{response[value]["likes"]["count"]}_likes_{response[value]["date"]}_datejpg', 'wb') as photo_for_download:
+                    with open(f'photos/{response[value]["likes"]["count"]}_likes_{response[value]["date"]}_date.jpg', 'wb') as photo_for_download:
                         photo_for_download.write(requests.get(link_list[value]).content)
                 print('Getting photos has been complited')
         
@@ -98,6 +98,9 @@ def course_work(vk_key, ya_token, vk_version='5.131', vk_id=1):
 
     print('Compliting the task has started')
     user = VK(vk_key, vk_version)
+    if os.path.isdir('photos'):
+        shutil.rmtree(f"{os.getcwd()}/photos")
+    os.mkdir('photos')
     user.get_photo()
     user.get_info()
     file_list = os.listdir(f"{os.getcwd()}/photos")
@@ -109,4 +112,4 @@ def course_work(vk_key, ya_token, vk_version='5.131', vk_id=1):
     print('Uploading has been finished')
     print('Compliting the task has been finished')
 
-course_work(vk_key, ya_token, '5.131')
+course_work('Введите токен VK:', "Введите токен Yandex:", 1, '5.131')
