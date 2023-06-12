@@ -38,63 +38,71 @@ def course_work(vk_key, ya_token, vk_id=1, vk_version='5.131'):
 
         def get_photo(self):
             '''Получает фотографии из профиля VK'''
-            print('Getting photos has started')
             photo_url = 'https://api.vk.com/method/' + 'photos.get'
             params = self.params
             photos = requests.get(photo_url, params)
-            response = photos.json()['response']['items'][:5]
-            number_of_photos = len(response)
-            link_list = []
-            json_dict = {}
-            for index in response:
-                sizes = index['sizes']
-                current_photo = 0
-                resolution = 0
-                for value in sizes:
-                    current_resolution = value['height'] * value['width']
-                    if current_resolution >= resolution:
-                        resolution = current_resolution
-                        current_photo = value
-                        download_url = current_photo['url']
-                link_list.append(download_url)
-            doubles_check = []
-            for value in range(len(link_list)):
-                doubles_check.append(response[value]["likes"]["count"])
-            if len(set(doubles_check)) == len(doubles_check):
+            try:
+                if photos.json()['error']:
+                    print('Data collecting is unavailable')
+            except KeyError:        
+                print('Getting photos has started')
+                response = photos.json()['response']['items'][:5]
+                number_of_photos = len(response)
+                link_list = []
+                json_dict = {}
+                for index in response:
+                    sizes = index['sizes']
+                    current_photo = 0
+                    resolution = 0
+                    for value in sizes:
+                        current_resolution = value['height'] * value['width']
+                        if current_resolution >= resolution:
+                            resolution = current_resolution
+                            current_photo = value
+                            download_url = current_photo['url']
+                    link_list.append(download_url)
+                doubles_check = []
                 for value in range(len(link_list)):
-                    with open(f'photos/{response[value]["likes"]["count"]}_likes.jpg', 'wb') as photo_for_download:
-                        photo_for_download.write(requests.get(link_list[value]).content)
-                print('Getting photos has been complited')
-            else:
-                for value in range(len(link_list)):
-                    with open(f'photos/{response[value]["likes"]["count"]}_likes_{response[value]["date"]}_date.jpg', 'wb') as photo_for_download:
-                        photo_for_download.write(requests.get(link_list[value]).content)
-                print('Getting photos has been complited')
+                    doubles_check.append(response[value]["likes"]["count"])
+                if len(set(doubles_check)) == len(doubles_check):
+                    for value in range(len(link_list)):
+                        with open(f'photos/{response[value]["likes"]["count"]}_likes.jpg', 'wb') as photo_for_download:
+                            photo_for_download.write(requests.get(link_list[value]).content)
+                    print('Getting photos has been complited')
+                else:
+                    for value in range(len(link_list)):
+                        with open(f'photos/{response[value]["likes"]["count"]}_likes_{response[value]["date"]}_date.jpg', 'wb') as photo_for_download:
+                            photo_for_download.write(requests.get(link_list[value]).content)
+                    print('Getting photos has been complited')
         
         def get_info(self):
             '''Получает информацию о фотографиях из профиля VK'''
-            print('Getting info has started')
             photo_url = 'https://api.vk.com/method/' + 'photos.get'
             params = self.params
             photos = requests.get(photo_url, params)
-            response = photos.json()['response']['items'][:5]
-            number_of_photos = len(response)
-            link_list = []
-            json_dict = {}
-            for id, index in enumerate(response):
-                sizes = index['sizes']
-                current_photo = 0
-                resolution = 0
-                for value in sizes:
-                    current_resolution = value['height'] * value['width']
-                    if current_resolution >= resolution:
-                        resolution = current_resolution
-                        current_photo = value
-                        download_url = current_photo['url']
-                json_dict[f'file_{id+1}'] = {"file_name" : f'{response[id]["likes"]["count"]}_likes.jpg', 'size' : current_photo['type']}
-            with open(f'photos/info.json', 'w') as info:
-                json.dump(json_dict, info)
-            print('Getting info has been complited')
+            try:
+                if photos.json()['error']:
+                    print('Account has been deactivated or closed')
+            except KeyError:    
+                print('Getting info has started')
+                response = photos.json()['response']['items'][:5]
+                number_of_photos = len(response)
+                link_list = []
+                json_dict = {}
+                for id, index in enumerate(response):
+                    sizes = index['sizes']
+                    current_photo = 0
+                    resolution = 0
+                    for value in sizes:
+                        current_resolution = value['height'] * value['width']
+                        if current_resolution >= resolution:
+                            resolution = current_resolution
+                            current_photo = value
+                            download_url = current_photo['url']
+                    json_dict[f'file_{id+1}'] = {"file_name" : f'{response[id]["likes"]["count"]}_likes.jpg', 'size' : current_photo['type']}
+                with open(f'photos/info.json', 'w') as info:
+                    json.dump(json_dict, info)
+                print('Getting info has been complited')
 
     print('Compliting the task has started')
     user = VK(vk_key, vk_version)
@@ -103,13 +111,18 @@ def course_work(vk_key, ya_token, vk_id=1, vk_version='5.131'):
     os.mkdir('photos')
     user.get_photo()
     user.get_info()
-    file_list = os.listdir(f"{os.getcwd()}/photos")
-    token = ya_token
-    uploader = YaUploader(token)
-    print('Uploading has started')
-    for number in range(len(file_list)):    
-        uploader.upload(file_list[number])
-    print('Uploading has been finished')
-    print('Compliting the task has been finished')
+    if not os.listdir(f"{os.getcwd()}/photos"):
+        print("Nothing to upload")
+        print('Task is unavailable for completing')
+    else:
+        file_list = os.listdir(f"{os.getcwd()}/photos")
+        token = ya_token
+        uploader = YaUploader(token)
+        print('Uploading has started')
+        for number in range(len(file_list)):    
+            uploader.upload(file_list[number])
+        print('Uploading has been finished')
+        print('Compliting the task has been finished')
 
-course_work('Введите токен VK вместо этой строки', "Введите токен Yandex вместо этой строки", 1, '5.131')
+
+course_work(str(input("Enter your VK token: ")), str(input("Enter your Yandex token: ")), int(input("Enter VK users's id to get their photos: ")), '5.131')
